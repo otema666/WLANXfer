@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35303.130
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "server-file-transfer", "server-file-transfer\server-file-transfer.vcxproj", "{E488BC43-0B9D-4000-B050-915E2FB639C6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E488BC43-0B9D-4000-B050-915E2FB639C6}.Debug|x64.ActiveCfg = Debug|x64
+		{E488BC43-0B9D-4000-B050-915E2FB639C6}.Debug|x64.Build.0 = Debug|x64
+		{E488BC43-0B9D-4000-B050-915E2FB639C6}.Debug|x86.ActiveCfg = Debug|Win32
+		{E488BC43-0B9D-4000-B050-915E2FB639C6}.Debug|x86.Build.0 = Debug|Win32
+		{E488BC43-0B9D-4000-B050-915E2FB639C6}.Release|x64.ActiveCfg = Release|x64
+		{E488BC43-0B9D-4000-B050-915E2FB639C6}.Release|x64.Build.0 = Release|x64
+		{E488BC43-0B9D-4000-B050-915E2FB639C6}.Release|x86.ActiveCfg = Release|Win32
+		{E488BC43-0B9D-4000-B050-915E2FB639C6}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {203634E2-AEB9-4D36-9F21-432CD46E3468}
+	EndGlobalSection
+EndGlobal

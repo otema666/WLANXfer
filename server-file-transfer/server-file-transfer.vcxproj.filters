@@ -21,9 +21,15 @@
     <ClCompile Include="mongoose.c">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="server.c">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mongoose.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="server.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>

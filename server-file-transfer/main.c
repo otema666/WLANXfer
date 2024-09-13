@@ -1,63 +1,64 @@
-#include "mongoose.h"
+// main.c
+#include <windows.h>
 #include <stdio.h>
-#include <string.h>
+#include <stdlib.h>
+#include <locale.h>
+#include "server.h"
 
-void ev_handler(struct mg_connection* c, int ev, void* ev_data) {
-    if (ev == MG_EV_HTTP_MSG) {
-        struct mg_http_message* hm = (struct mg_http_message*)ev_data;
 
-        struct mg_http_serve_opts opts = {
-          .root_dir = "./",
-        };
+volatile BOOL keep_running = TRUE;
 
-        mg_http_serve_dir(c, hm, &opts);
+BOOL WINAPI console_handler(DWORD dwCtrlType) {
+    if (dwCtrlType == CTRL_C_EVENT) {
+        keep_running = FALSE;
+        return TRUE;
     }
+    return FALSE;
 }
 
-void parse_args(int argc, char* argv[], char* root_dir, char* port) {
-    for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "-d") == 0 && i + 1 < argc) {
-            strcpy(root_dir, argv[i + 1]);
-        }
-        else if (strcmp(argv[i], "-p") == 0 && i + 1 < argc) {
-            strcpy(port, argv[i + 1]);
-        }
-        else if (strcmp(argv[i], "-h") == 0) {
-            printf("Uso: %s [-d root_dir] [-p port]\n", argv[0]);
-            printf("Opciones:\n");
-            printf("  -d root_dir  Especifica el directorio raíz.\n");
-            printf("  -p port      Especifica el puerto.\n");
-            printf("  -h           Muestra esta ayuda.\n");
-            exit(0);
-        }
-    }
-}
-
-int main(int argc, char* argv[]) {
-    struct mg_mgr mgr;
-    struct mg_connection* c;
-    char root_dir[100] = "./";
-    char port[10] = "8000";
-
-    parse_args(argc, argv, root_dir, port);
-
-    mg_mgr_init(&mgr);
-
-    char listen_addr[20];
-    snprintf(listen_addr, sizeof(listen_addr), "http://0.0.0.0:%s", port);
-
-    c = mg_http_listen(&mgr, listen_addr, ev_handler, NULL);
-    if (c == NULL) {
-        printf("Error al iniciar el servidor en el puerto %s\n", port);
-        return 1;
+int main() {
+    if (!SetConsoleCtrlHandler(console_handler, TRUE)) {
+        fprintf(stderr, "Error al instalar el manejador de señales.\n");
+        return EXIT_FAILURE;
     }
 
-    printf("Servidor HTTP iniciado en el puerto %s, sirviendo el directorio %s\n", port, root_dir);
+    setlocale(LC_ALL, "");
+    char option[10];
+    char port[10];
 
-    for (;;) {
-        mg_mgr_poll(&mgr, 1000);
+    while (TRUE) {
+        setColor(11);
+        printf("============================================\n");
+        printf("                SERVER MENU                 \n");
+        printf("============================================\n");
+
+        setColor(14);
+        printf("1: Iniciar como Host\n");
+        printf("2: Modo Cliente (no implementado)\n");
+        setColor(7);
+
+        printf("Seleccione una opción: ");
+        fgets(option, sizeof(option), stdin);
+        printf("\n");
+
+        if (option[0] == '1') {
+            input_port(port);
+            select_directory(global_root_dir);
+            start_server(port);
+        }
+        else if (option[0] == '2') {
+            setColor(12);
+            printf("Modo cliente no implementado aún.\n");
+            setColor(7);
+        }
+        else {
+            setColor(12);
+            printf("Opción no válida. Saliendo...\n");
+            setColor(7);
+            system("pause");
+        }
     }
 
-    mg_mgr_free(&mgr);
+    setColor(7);
     return 0;
 }

@@ -1,5 +1,5 @@
 // server.c
-#include <winsock2.h> // Asegúrate de incluir esto antes de windows.h
+#include <winsock2.h>
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,10 +24,10 @@ void input_port(char* port) {
     fgets(port, 10, stdin);
     setColor(7);
     port[strcspn(port, "\n")] = 0;
-	if (atoi(port) == NULL) {
-		port = "80";
-		printf("Seleccionado puerto 80 por defecto.\n");
-	}
+    if (atoi(port) == 0) {
+        strcpy_s(port, 10, "80");
+        printf("Seleccionado puerto 80 por defecto.\n");
+    }
 }
 
 size_t write_data(void* ptr, size_t size, size_t nmemb, FILE* stream) {
@@ -37,11 +37,10 @@ size_t write_data(void* ptr, size_t size, size_t nmemb, FILE* stream) {
 
 void launch_url_qr(const char* url) {
     HINTERNET hInternet, hConnect;
-    BOOL success;
     FILE* fp;
     const char* filename = "QR.png";
     char url_qr[256];
-    snprintf(url_qr, sizeof(url_qr), "https://api.qrserver.com/v1/create-qr-code/?data=%s", url);
+    _snprintf_s(url_qr, sizeof(url_qr), _TRUNCATE, "https://api.qrserver.com/v1/create-qr-code/?data=%s", url);
     DWORD bytesRead;
     BYTE buffer[4096];
 
@@ -56,8 +55,8 @@ void launch_url_qr(const char* url) {
         InternetCloseHandle(hInternet);
         return;
     }
-    fp = fopen(filename, "wb");
-    if (!fp) {
+    errno_t err = fopen_s(&fp, filename, "wb");
+    if (err != 0) {
         perror("Failed to open file");
         InternetCloseHandle(hConnect);
         InternetCloseHandle(hInternet);
@@ -72,11 +71,8 @@ void launch_url_qr(const char* url) {
     InternetCloseHandle(hConnect);
     InternetCloseHandle(hInternet);
     ShellExecuteA(NULL, "open", filename, NULL, NULL, SW_SHOWNORMAL);
-    //ShellExecuteA(NULL, "open", "mspaint.exe", filename, NULL, SW_SHOWNORMAL);
-
 
     Sleep(1200);
-
     DeleteFileA(filename);
 }
 
@@ -100,7 +96,8 @@ void select_directory(char* root_dir) {
                     hr = psiResult->lpVtbl->GetDisplayName(psiResult, SIGDN_FILESYSPATH, &pszFolderPath);
 
                     if (SUCCEEDED(hr)) {
-                        wcstombs(root_dir, pszFolderPath, MAX_PATH);
+                        size_t convertedChars = 0;
+                        wcstombs_s(&convertedChars, root_dir, MAX_PATH, pszFolderPath, _TRUNCATE);
 
                         setColor(10); // 10 = verde
                         printf("%s\n", root_dir);
@@ -130,15 +127,40 @@ void ev_handler(struct mg_connection* c, int ev, void* ev_data) {
     }
 }
 
-void get_local_ip(char* ip) {
+void get_local_ip(char* ip, size_t ip_size) {
+    WSADATA wsaData;
+    struct addrinfo hints, * res;
     char hostname[256];
-    gethostname(hostname, sizeof(hostname));
 
-    struct hostent* host;
-    host = gethostbyname(hostname);
+    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+        strncpy_s(ip, ip_size, "Error", _TRUNCATE);
+        return;
+    }
 
-    strcpy(ip, inet_ntoa(*((struct in_addr*)host->h_addr_list[0])));
+    if (gethostname(hostname, sizeof(hostname)) == SOCKET_ERROR) {
+        strncpy_s(ip, ip_size, "Error", _TRUNCATE);
+        WSACleanup();
+        return;
+    }
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+
+    if (getaddrinfo(hostname, NULL, &hints, &res) != 0) {
+        strncpy_s(ip, ip_size, "Error", _TRUNCATE);
+        WSACleanup();
+        return;
+    }
+
+    struct sockaddr_in* ipv4 = (struct sockaddr_in*)res->ai_addr;
+    inet_ntop(AF_INET, &(ipv4->sin_addr), ip, ip_size);
+
+    freeaddrinfo(res);
+    WSACleanup();
 }
+
+
 
 void start_server(char* port) {
     struct mg_mgr mgr;
@@ -147,7 +169,7 @@ void start_server(char* port) {
     mg_mgr_init(&mgr);
 
     char listen_addr[20];
-    snprintf(listen_addr, sizeof(listen_addr), "http://0.0.0.0:%s", port);
+    _snprintf_s(listen_addr, sizeof(listen_addr), _TRUNCATE, "http://0.0.0.0:%s", port);
 
     c = mg_http_listen(&mgr, listen_addr, ev_handler, NULL);
     if (c == NULL) {
@@ -157,26 +179,29 @@ void start_server(char* port) {
     }
 
     char ip[20];
-    get_local_ip(ip);
+    get_local_ip(ip, sizeof(ip));
     char url[50];
-    snprintf(url, sizeof(url), "http://%s:%s", ip, port);
+    _snprintf_s(url, sizeof(url), _TRUNCATE, "http://%s:%s", ip, port);
     launch_url_qr(url);
-	system("cls");
+    system("cls");
 
     printf("Servidor HTTP iniciado.\n");
-    setColor(1); printf(url); setColor(7);
-	char command[100];
-	snprintf(command, sizeof(command), "start %s", url);
-	system(command);
-	printf("\nPresione Ctrl+C para detener el servidor.\n");
+    setColor(1); printf("%s\n", url); setColor(7);
+
+    char command[100];
+    _snprintf_s(command, sizeof(command), _TRUNCATE, "start %s", url);
+    system(command);
+    printf("\nPresione Ctrl+C para detener el servidor.\n");
 
     while (keep_running) {
         mg_mgr_poll(&mgr, 1000);
     }
 
     mg_mgr_free(&mgr);
-	setColor(12);
+    setColor(12);
     printf("\nServidor detenido.\n");
-	setColor(7);
-	system("pause");
+    setColor(7);
+    system("pause");
 }
+
+

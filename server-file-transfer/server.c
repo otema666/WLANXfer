@@ -24,6 +24,10 @@ void input_port(char* port) {
     fgets(port, 10, stdin);
     setColor(7);
     port[strcspn(port, "\n")] = 0;
+	if (atoi(port) == NULL) {
+		port = "80";
+		printf("Seleccionado puerto 80 por defecto.\n");
+	}
 }
 
 size_t write_data(void* ptr, size_t size, size_t nmemb, FILE* stream) {
@@ -35,7 +39,7 @@ void launch_url_qr(const char* url) {
     HINTERNET hInternet, hConnect;
     BOOL success;
     FILE* fp;
-    const char* filename = "qrcode.png";
+    const char* filename = "QR.png";
     char url_qr[256];
     snprintf(url_qr, sizeof(url_qr), "https://api.qrserver.com/v1/create-qr-code/?data=%s", url);
     DWORD bytesRead;
@@ -67,12 +71,11 @@ void launch_url_qr(const char* url) {
     fclose(fp);
     InternetCloseHandle(hConnect);
     InternetCloseHandle(hInternet);
-	printf("QR Code descargado: %s\n", filename);
     ShellExecuteA(NULL, "open", filename, NULL, NULL, SW_SHOWNORMAL);
     //ShellExecuteA(NULL, "open", "mspaint.exe", filename, NULL, SW_SHOWNORMAL);
 
 
-    Sleep(1500);
+    Sleep(1200);
 
     DeleteFileA(filename);
 }
@@ -158,12 +161,22 @@ void start_server(char* port) {
     char url[50];
     snprintf(url, sizeof(url), "http://%s:%s", ip, port);
     launch_url_qr(url);
-    printf("Servidor HTTP iniciado en el puerto %s, %s\n", port, url);
+	system("cls");
+
+    printf("Servidor HTTP iniciado.\n");
+    setColor(1); printf(url); setColor(7);
+	char command[100];
+	snprintf(command, sizeof(command), "start %s", url);
+	system(command);
+	printf("\nPresione Ctrl+C para detener el servidor.\n");
 
     while (keep_running) {
         mg_mgr_poll(&mgr, 1000);
     }
 
     mg_mgr_free(&mgr);
+	setColor(12);
     printf("\nServidor detenido.\n");
+	setColor(7);
+	system("pause");
 }

@@ -17,6 +17,7 @@ BOOL WINAPI console_handler(DWORD dwCtrlType) {
 }
 
 int main() {
+	SetConsoleTitle(L"Server File Transfer");
     if (!SetConsoleCtrlHandler(console_handler, TRUE)) {
         fprintf(stderr, "Error al instalar el manejador de señales.\n");
         return EXIT_FAILURE;
@@ -27,17 +28,19 @@ int main() {
     char port[10];
 
     while (TRUE) {
+		system("cls");
         setColor(11);
-        printf("============================================\n");
-        printf("                SERVER MENU                 \n");
-        printf("============================================\n");
+        printf("\t\t\t\t============================================\n");
+        printf("\t\t\t\t                SERVER MENU                 \n");
+        printf("\t\t\t\t============================================\n");
 
         setColor(14);
         printf("1: Iniciar como Host\n");
         printf("2: Modo Cliente (no implementado)\n");
+		printf("3: Salir\n");
         setColor(7);
 
-        printf("Seleccione una opción: ");
+        printf("\nSeleccione una opción: ");
         fgets(option, sizeof(option), stdin);
         printf("\n");
 
@@ -50,10 +53,17 @@ int main() {
             setColor(12);
             printf("Modo cliente no implementado aún.\n");
             setColor(7);
+            system("pause");
+        }
+        else if (option[0] == '3') {
+            setColor(12);
+			printf("Saliendo...\n");
+            setColor(7);
+			exit(0);
         }
         else {
             setColor(12);
-            printf("Opción no válida. Saliendo...\n");
+            printf("Opción no válida.\n");
             setColor(7);
             system("pause");
         }

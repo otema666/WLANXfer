@@ -161,7 +161,6 @@ void get_local_ip(char* ip, size_t ip_size) {
 }
 
 
-
 void start_server(char* port) {
     struct mg_mgr mgr;
     struct mg_connection* c;
@@ -187,10 +186,10 @@ void start_server(char* port) {
 
     printf("Servidor HTTP iniciado.\n");
     setColor(1); printf("%s\n", url); setColor(7);
-
-    char command[100];
-    _snprintf_s(command, sizeof(command), _TRUNCATE, "start %s", url);
-    system(command);
+    
+    //char command[100];
+    //_snprintf_s(command, sizeof(command), _TRUNCATE, "start %s", url);
+    //system(command);
     printf("\nPresione Ctrl+C para detener el servidor.\n");
 
     while (keep_running) {

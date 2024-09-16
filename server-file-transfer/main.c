@@ -1,8 +1,10 @@
+// main.c
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <locale.h>
 #include "server.h"
+#include "client.h"
 
 NOTIFYICONDATA nid;
 volatile BOOL keep_running = TRUE;
@@ -26,7 +28,6 @@ void minimize_to_tray() {
     is_minimized = TRUE;
 }
 
-
 void restore_from_tray() {
     HWND hWnd = GetConsoleWindow();
 
@@ -38,12 +39,7 @@ void restore_from_tray() {
 
 DWORD WINAPI monitor_keys(LPVOID lpParam) {
     while (keep_running) {
-        if ((GetAsyncKeyState('W') & 0x8000) &&
-            (GetAsyncKeyState(VK_CONTROL) & 0x8000) &&
-            (GetAsyncKeyState(VK_MENU) & 0x8000) &&
-            (GetAsyncKeyState(VK_SHIFT) & 0x8000))
-        {
-            Sleep(50);
+        if ((GetAsyncKeyState('W') & 0x8000) && (GetAsyncKeyState(VK_CONTROL) & 0x8000) && (GetAsyncKeyState(VK_MENU) & 0x8000) && (GetAsyncKeyState(VK_SHIFT) & 0x8000)) {
             if (!is_minimized) {
                 minimize_to_tray();
             }
@@ -52,14 +48,9 @@ DWORD WINAPI monitor_keys(LPVOID lpParam) {
             }
         }
 
-        while ((GetAsyncKeyState('D') & 0x8000) &&
-            (GetAsyncKeyState(VK_CONTROL) & 0x8000) &&
-            (GetAsyncKeyState(VK_MENU) & 0x8000) &&
-            (GetAsyncKeyState(VK_SHIFT) & 0x8000))
-        {
+        while ((GetAsyncKeyState('W') & 0x8000) && (GetAsyncKeyState(VK_CONTROL) & 0x8000) && (GetAsyncKeyState(VK_MENU) & 0x8000) && (GetAsyncKeyState(VK_SHIFT) & 0x8000)) {
             Sleep(100);
         }
-
         Sleep(40);
     }
     return 0;
@@ -100,7 +91,7 @@ int main() {
 
         setColor(14);
         printf("1: Iniciar como Host\n");
-        printf("2: Modo Cliente (no implementado)\n");
+        printf("2: Iniciar como Cliente\n");
         printf("3: Salir\n");
         setColor(7);
 
@@ -114,10 +105,10 @@ int main() {
             start_server(port);
         }
         else if (option[0] == '2') {
-            setColor(12);
-            printf("Modo cliente no implementado aún.\n");
+            setColor(14);
+            printf("Iniciando modo cliente...\n");
             setColor(7);
-            system("pause");
+            start_client();
         }
         else if (option[0] == '3') {
             setColor(12);

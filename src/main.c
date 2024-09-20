@@ -108,6 +108,7 @@ int main() {
             setColor(14);
             printf("Iniciando modo cliente...\n");
             setColor(7);
+            system("cls");
             start_client();
         }
         else if (option[0] == '3') {

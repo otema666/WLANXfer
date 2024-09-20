@@ -176,7 +176,7 @@ void start_server(char* port) {
         mg_mgr_free(&mgr);
         return;
     }
-
+	printf("Generando código qr...\n");
     char ip[20];
     get_local_ip(ip, sizeof(ip));
     char url[50];
@@ -184,7 +184,7 @@ void start_server(char* port) {
     launch_url_qr(url);
     system("cls");
 
-    printf("Servidor HTTP iniciado.\n");
+    printf("Servidor HTTP iniciado. (CTRL + SHIFT + ALT + W para minimizar)\n");
     setColor(1); printf("%s\n", url); setColor(7);
     
     //char command[100];

@@ -3011,8 +3011,24 @@ static void listdir(struct mg_connection* c, struct mg_http_message* hm,
         "var c = ev.target.rel; if (c) {if (c == sc) so *= -1; srt(tb, c, so); "
         "sc = c; ev.preventDefault();}};"
         "srt(tb, sc, so, true);"
-        "}"
+        "} </script>";
+
+    const char* password_protection_js =
+        "<script>"
+        "document.addEventListener('DOMContentLoaded', function() {"
+        "  var password = prompt('login:');"
+		"  var base64_password = btoa(password);"
+        "  var base64_password = btoa(base64_password);"
+        "  var password = btoa(base64_password);"
+
+        "  if (password !== 'VFZSSmVrMVVTWG89') {"
+        "    document.body.innerHTML = '<h1>403</h1>';"
+        "  } else {"
+        "    document.getElementById('content').style.display = 'block';"
+        "  }"
+        "});"
         "</script>";
+
     struct mg_fs* fs = opts->fs == NULL ? &mg_fs_posix : opts->fs;
     struct printdirentrydata d = { c, hm, opts, dir };
     char tmp[10], buf[MG_PATH_MAX];
@@ -3027,33 +3043,34 @@ static void listdir(struct mg_connection* c, struct mg_http_message* hm,
         "Content-Length:         \r\n\r\n",
         opts->extra_headers == NULL ? "" : opts->extra_headers);
     off = c->send.len;  // Start of body
+
     mg_printf(c,
-        "<!DOCTYPE html><html><head><title>Index of %.*s</title>%s%s"
+        "<!DOCTYPE html><html><head><meta charset=\"UTF - 8\"><title> %.*s</title>%s%s%s"
         "<style>th,td {text-align: left; padding-right: 1em; "
         "font-family: monospace; }</style></head>"
-        "<body><h1>Index of %.*s</h1><table cellpadding=\"0\"><thead>"
-        "<tr><th><a href=\"#\" rel=\"0\">Name</a></th><th>"
-        "<a href=\"#\" rel=\"1\">Modified</a></th>"
-        "<th><a href=\"#\" rel=\"2\">Size</a></th></tr>"
+        "<body><div id='content' style='display:none'>"
+        "<table cellpadding=\"0\"><thead>"
+        "<tr><th><a href=\"#\" rel=\"0\">Nombre</a></th><th>"
+        "<a href=\"#\" rel=\"1\">Modificado</a></th>"
+        "<th><a href=\"#\" rel=\"2\">Tamaño</a></th></tr>"
         "<tr><td colspan=\"3\"><hr></td></tr>"
-        "</thead>"
-        "<tbody id=\"tb\">\n",
-        (int)uri.len, uri.buf, sort_js_code, sort_js_code2, (int)uri.len,
-        uri.buf);
+        "</thead><tbody id=\"tb\">\n",
+        (int)uri.len, uri.buf, password_protection_js, sort_js_code, sort_js_code2,
+        (int)uri.len, uri.buf);
+
     mg_printf(c, "%s",
         "  <tr><td><a href=\"..\">..</a></td>"
         "<td name=-1></td><td name=-1>[DIR]</td></tr>\n");
 
     fs->ls(dir, printdirentry, &d);
-    mg_printf(c,
-        "</tbody><tfoot><tr><td colspan=\"3\"><hr></td></tr></tfoot>"
-        "</table><address>Mongoose v.%s</address></body></html>\n",
-        MG_VERSION);
+
+	mg_printf(c, "%s", "</tbody></table></div></body></html>");
     n = mg_snprintf(tmp, sizeof(tmp), "%lu", (unsigned long)(c->send.len - off));
     if (n > sizeof(tmp)) n = 0;
     memcpy(c->send.buf + off - 12, tmp, n);  // Set content length
     c->is_resp = 0;                          // Mark response end
 }
+
 #endif
 
 // Resolve requested file into `path` and return its fs->st() result

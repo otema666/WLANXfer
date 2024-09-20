@@ -143,6 +143,8 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\..\..\Downloads\icon.ico" />
+    <Image Include="res\icon.ico" />
+    <Image Include="res\r_icon.ico" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc" />

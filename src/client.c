@@ -1,5 +1,6 @@
 // client.c
 #define WIN32_LEAN_AND_MEAN
+#define _CRT_SECURE_NO_DEPRECATE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

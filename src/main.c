@@ -1,41 +1,14 @@
 // main.c
-#include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <locale.h>
 #include "server.h"
 #include "client.h"
+#include "update.h"
+#include "utils.h"
 
-NOTIFYICONDATA nid;
 volatile BOOL keep_running = TRUE;
-volatile BOOL is_minimized = FALSE;
 
-void minimize_to_tray() {
-    HWND hWnd = GetConsoleWindow();
-
-    memset(&nid, 0, sizeof(nid));
-    nid.cbSize = sizeof(NOTIFYICONDATA);
-    nid.hWnd = hWnd;
-    nid.uID = 100;
-    nid.uFlags = NIF_ICON | NIF_TIP | NIF_MESSAGE;
-    nid.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(101));
-    wcscpy_s(nid.szTip, _countof(nid.szTip), L"WLANXfer");
-    nid.uCallbackMessage = WM_USER + 1;
-
-    Shell_NotifyIcon(NIM_ADD, &nid);
-
-    ShowWindow(hWnd, SW_HIDE);
-    is_minimized = TRUE;
-}
-
-void restore_from_tray() {
-    HWND hWnd = GetConsoleWindow();
-
-    ShowWindow(hWnd, SW_SHOW);
-    SetForegroundWindow(hWnd);
-    Shell_NotifyIcon(NIM_DELETE, &nid);
-    is_minimized = FALSE;
-}
 
 DWORD WINAPI monitor_keys(LPVOID lpParam) {
     while (keep_running) {
@@ -64,15 +37,22 @@ BOOL WINAPI console_handler(DWORD dwCtrlType) {
     return FALSE;
 }
 
-int main() {
-    SetConsoleTitle(L"WLANXfer");
+int main(int argc, char *argv[]) {
+    if (argc == 2) {
+        const char* updater_path = argv[1];
+        delete_updater(updater_path);
+    }
 
+    SetConsoleTitle(L"WLANXfer");
+    setlocale(LC_ALL, "");
+
+	check_for_updates();
+    system("pause");
     if (!SetConsoleCtrlHandler(console_handler, TRUE)) {
         fprintf(stderr, "Error al instalar el manejador de señales.\n");
         return EXIT_FAILURE;
     }
 
-    setlocale(LC_ALL, "");
     char option[10];
     char port[10];
 

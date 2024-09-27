@@ -162,10 +162,13 @@ int main(int argc, char* argv[]) {
     printf("\t\t\t\t============================================\n\n");
 
     setColor(7);
+    
     char updater_path[MAX_PATH];
-    GetModuleFileName(NULL, updater_path, MAX_PATH);
+    char currentDir[MAX_PATH];
 
-    snprintf(updater_path, sizeof(updater_path), "%s", updater_path);
+    if (GetCurrentDirectoryA(MAX_PATH, currentDir) != 0) {
+        snprintf(updater_path, sizeof(updater_path), "%s\\%s", currentDir, "updater.exe");
+    }
 
     kill_process(pid);
 	printf("\n");

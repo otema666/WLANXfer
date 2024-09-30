@@ -14,6 +14,8 @@
 #pragma comment(lib, "ws2_32.lib")
 
 #define MAX_MESSAGE_LENGTH 256
+#define MAX_BODY_SIZE 8192
+
 const wchar_t CLASS_NAME[] = L"NotificationWindow";
 
 char ip_address[16];
@@ -25,10 +27,37 @@ FileInfo previous_files[MAX_FILES];
 int previous_file_count = 0;
 wchar_t download_directory[MAX_PATH];
 
+void url_decode(char* src, char* dest) {
+    char* psrc = src;
+    char* pdest = dest;
+    while (*psrc) {
+        if (*psrc == '%') {
+            if (psrc[1] && psrc[2]) {
+                int hex_value;
+                sscanf(psrc + 1, "%2x", &hex_value);
+                *pdest++ = (char)hex_value;
+                psrc += 3;
+            }
+        }
+        else if (*psrc == '+') {
+            *pdest++ = ' ';
+            psrc++;
+        }
+        else {
+            *pdest++ = *psrc++;
+        }
+    }
+    *pdest = '\0';
+}
+
+
 void ev_handler_client(struct mg_connection* c, int ev, void* ev_data) {
     if (ev == MG_EV_HTTP_MSG) {
         struct mg_http_message* hm = (struct mg_http_message*)ev_data;
 
+        memset(files, 0, sizeof(files));
+        char decoded_body[MAX_BODY_SIZE];
+        url_decode(hm->body.buf, decoded_body);
         extract_filenames(hm->body.buf, files, &file_count);
 
         for (int i = 0; i < file_count; i++) {
@@ -45,6 +74,8 @@ void ev_handler_client(struct mg_connection* c, int ev, void* ev_data) {
             }
             if (!found) {
                 printf("\tNuevo archivo: %s \n", files[i].filename);
+                descargar_archivo(files[i].filename);
+                notificar(files[i].filename);
             }
         }
 
@@ -54,6 +85,7 @@ void ev_handler_client(struct mg_connection* c, int ev, void* ev_data) {
         c->is_closing = 1;
     }
 }
+
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
@@ -91,7 +123,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
 void notificar(const char* message) {
     wchar_t w_message[MAX_MESSAGE_LENGTH];
-    MultiByteToWideChar(CP_UTF8, 0, message, -1, w_message, MAX_MESSAGE_LENGTH);
+    char decoded_message[MAX_MESSAGE_LENGTH];
+    url_decode((char*)message, decoded_message);
+
+    MultiByteToWideChar(CP_UTF8, 0, decoded_message, -1, w_message, MAX_MESSAGE_LENGTH);
 
     WNDCLASS wc = { };
     wc.lpfnWndProc = WindowProc;
@@ -146,6 +181,8 @@ void descargar_archivo(const char* filename) {
 
     snprintf(source_url, sizeof(source_url), "http://%s:%d/%s", ip_address, port, filename);
 
+    char decoded_filename[MAX_FILENAME_LEN];
+    url_decode((char*)filename, decoded_filename);
     char* ip = strtok(source_url + 7, ":");
     char* port_str = strtok(NULL, "/");
     int port_number = atoi(port_str);
@@ -174,7 +211,7 @@ void descargar_archivo(const char* filename) {
     send(sock, request, strlen(request), 0);
 
     char destination_path[MAX_PATH];
-    snprintf(destination_path, sizeof(destination_path), "%s\\%s", download_directory, filename);
+    snprintf(destination_path, sizeof(destination_path), "%s\\%s", download_directory, decoded_filename);
     fp = fopen(destination_path, "wb");
     if (fp == NULL) {
         printf("Error al crear el archivo: %s\n", destination_path);

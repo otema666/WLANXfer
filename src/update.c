@@ -81,6 +81,7 @@ void check_for_updates() {
     }
     else {
         printf("Error en la solicitud HTTP. Código de estado: %d\n", dwStatusCode);
+		exit(1);
     }
 
     if (strcmp(APP_VERSION, server_version) != 0) {

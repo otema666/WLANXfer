@@ -13,9 +13,9 @@ typedef struct {
     uint64_t timestamp;
 } FileInfo;
 
+void url_decode(char* src, char* dest);
 void start_client();
 void extract_filenames(const char* html, FileInfo files[], int* file_count);
 void notificar(const char* message);
 void descargar_archivo(const char* filename);
-
 #endif

@@ -47,7 +47,6 @@ int main(int argc, char *argv[]) {
     setlocale(LC_ALL, "");
 
 	check_for_updates();
-    system("pause");
     if (!SetConsoleCtrlHandler(console_handler, TRUE)) {
         fprintf(stderr, "Error al instalar el manejador de señales.\n");
         return EXIT_FAILURE;
